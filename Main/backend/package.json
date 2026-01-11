@@ -5,7 +5,7 @@
   "main": "src/server.ts",
   "scripts": {
     "start": "ts-node src/server.ts",
-    "build": "npx tsc -b"
+    "build": "tsc"
   },
   "type": "module",
   "keywords": [],
