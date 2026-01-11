@@ -1,0 +1,114 @@
+// Client to server message types
+interface SocketRequest {
+    id: string;
+    type: string;
+    data?: any;
+}
+
+// Coming from server messaget types
+interface SocketResponse {
+    id: string;
+    data?: any;
+    error?: string;
+}
+
+// Type for the promise functions stored in the Map
+interface PendingRequest {
+    resolve: (data: any) => void;
+    reject: (reason: any) => void;
+}
+
+class SocketService {
+    private socket: WebSocket | null = null;
+    private pendingRequests = new Map<string, PendingRequest>();
+
+    public connect(url: string): void {
+        if (this.socket) return; // Prevent double connection
+
+        this.socket = new WebSocket(url);
+
+        this.socket.onopen = () => {
+            console.log('WebSocket Connected');
+        };
+
+        this.socket.onmessage = (event: MessageEvent) => {
+            //this logic runs when the server sends something
+            try {
+                const msg: SocketResponse = JSON.parse(event.data);
+
+                if (msg.id && this.pendingRequests.has(msg.id)) {
+                    const { resolve, reject } = this.pendingRequests.get(msg.id)!;
+
+                    if (msg.error) {
+                        reject(new Error(msg.error));
+                    } else {
+                        resolve(msg.data);
+                    }
+
+                    this.pendingRequests.delete(msg.id);
+                } else {
+                    // Messages which are not expected.
+                    console.log("Received Push Notification:", msg);
+                }
+            } catch (err) {
+                console.error("Error parsing WebSocket message", err);
+            }
+        };
+
+        this.socket.onclose = () => {
+            console.log("WebSocket Disconnected");
+            this.socket = null;
+        };
+    }
+
+    //send request logic
+    public sendRequest<T>(type: string, data: any = {}): Promise<T> {
+        return new Promise<T>((resolve, reject) => {
+            // 1. Handle case where connect() hasn't been called yet
+            if (!this.socket) {
+                return reject(new Error("Socket not initialized. Connection logic hasn't run yet."));
+            }
+
+            // Helper to send the message once safe
+            const send = () => {
+                const id = crypto.randomUUID();
+                this.pendingRequests.set(id, { resolve, reject });
+
+                const requestPayload: SocketRequest = { type, data, id };
+
+                // Check if socket is still valid before sending
+                if (this.socket && this.socket.readyState === WebSocket.OPEN) {
+                    this.socket.send(JSON.stringify(requestPayload));
+                } else {
+                    reject(new Error("Socket closed before sending"));
+                }
+
+                // Timeout safety
+                setTimeout(() => {
+                    if (this.pendingRequests.has(id)) {
+                        this.pendingRequests.delete(id);
+                        reject(new Error(`Request ${type} timed out`));
+                    }
+                }, 5000);
+            };
+
+            // 2. Handle Connection States
+            if (this.socket.readyState === WebSocket.OPEN) {
+                send();
+            } else if (this.socket.readyState === WebSocket.CONNECTING) {
+                // FIX: Wait for the 'open' event instead of failing
+                const onOpen = () => {
+                    this.socket?.removeEventListener('open', onOpen); // Cleanup listener
+                    send();
+                };
+                this.socket.addEventListener('open', onOpen);
+            } else {
+                reject(new Error("Socket is closed."));
+            }
+        });
+    }
+}
+
+// Export Singleton
+const socketService = new SocketService();
+export default socketService;

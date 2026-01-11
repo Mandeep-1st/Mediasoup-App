@@ -1,0 +1,13 @@
+version: "3"
+services:
+  linux:
+    container_name: "my-reactMediasoup"
+    image: "image-react-mediasoup"
+    restart: "always"
+    tty: true
+    ports:
+      - "3000:3000"
+      - "2000-2020:2000-2020"
+      # - "10000-10100:10000-10100"
+    volumes:
+      - "C:/Users/mande/Desktop/React-MediaSoup/Main:/usr/src"
