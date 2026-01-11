@@ -437,7 +437,7 @@ const handleCreateWebRtcTransport = async (socketId: string, socket: WebSocket, 
             listenIps: [
                 {
                     ip: process.env.IP || "0.0.0.0",
-                    announcedIp: process.env.ANNOUNCEDIP || "127.0.0.1",
+                    announcedIp: process.env.ANNOUNCEDIP || "mediasoup-app.onrender.com",
                 },
 
             ],
