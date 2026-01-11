@@ -21,7 +21,7 @@ export const SocketProvider: React.FC<ProviderProps> = ({ children }) => {
 
   useEffect(() => {
     // 1. Initialize the connection
-    socketService.connect("wss://mediasoup-app.onrender.com");
+    socketService.connect("ws://13.233.147.221:3000");
     // 2. Mark as ready immediately after (since socketService.socket is now defined)
     setIsReady(true);
   }, []);
