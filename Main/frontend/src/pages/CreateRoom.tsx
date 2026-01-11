@@ -1,10 +1,8 @@
 import { useState } from "react";
-import { useSocket } from "../context/SocketProvider";
 import { useNavigate } from "react-router-dom";
 
 export const CreateRoom = () => {
   const [roomName, setRoomName] = useState<string>("");
-  const socket = useSocket();
   const navigate = useNavigate();
   const handleCreateRoom = async () => {
     navigate(`/space/${roomName}`, { state: roomName });

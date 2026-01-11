@@ -326,6 +326,7 @@ export const Space = () => {
     }
   };
 
+  //@ts-ignore
   const offAudio = async () => {
     //This is just an alias for onAudio when audio is on
     if (isAudioOn) {
@@ -333,6 +334,7 @@ export const Space = () => {
     }
   };
 
+  //@ts-ignore
   const offVideo = async () => {
     // This is now just an alias for onVideo when video is on
     if (isVideoOn) {
